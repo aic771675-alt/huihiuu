@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админ · Галерея</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#0a0a0b; --bg-1:#111113; --ink-0:#f4f2ee; --ink-1:#b9b6b0; --ink-2:#7a7772;
+    --accent:#d9ff6b; --line:rgba(244,242,238,0.12); --danger:#ff6b6b;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    background:var(--bg-0); color:var(--ink-0);
+    font-family:'Manrope',system-ui,sans-serif;
+    min-height:100vh;
+    padding:32px clamp(16px,4vw,56px) 64px;
+  }
+  /* Password gate */
+  #auth-gate{
+    position:fixed; inset:0; z-index:9999;
+    background:var(--bg-0);
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column; gap:18px;
+    padding:24px;
+  }
+  #auth-gate.hidden{display:none;}
+  #auth-gate h2{font-family:'Fraunces',serif; font-weight:500; font-size:22px; text-align:center;}
+  #auth-gate input{
+    background:#161618; border:1px solid var(--line); color:var(--ink-0);
+    padding:14px 18px; border-radius:10px; font-size:16px; width:min(280px, 100%); outline:none;
+    text-align:center;
+  }
+  #auth-gate input:focus{border-color:var(--accent);}
+  #auth-gate .err{color:var(--danger); font-size:13px; height:18px;}
+  #auth-gate .btn{width:min(280px, 100%);}
+  .layout.locked{display:none;}
+
+  h1{font-family:'Fraunces',serif; font-weight:500; font-size:28px; margin-bottom:6px;}
+  .sub{color:var(--ink-2); font-size:13.5px; margin-bottom:32px;}
+  .sub b{color:var(--accent);}
+  .layout{max-width:1100px; margin:0 auto;}
+  .add-card{
+    border:1px solid var(--line); border-radius:16px;
+    background:var(--bg-1); padding:22px;
+    display:grid; grid-template-columns:1.4fr 1fr auto; gap:12px; align-items:end;
+    margin-bottom:28px;
+  }
+
+  /* Mobile */
+  @media (max-width: 720px){
+    body{padding:18px 14px 48px;}
+    h1{font-size:22px;}
+    .sub{font-size:13px; margin-bottom:22px;}
+    .add-card{
+      grid-template-columns:1fr;
+      gap:14px;
+      padding:16px;
+    }
+    .add-card .btn{width:100%;}
+    .grid{grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:12px;}
+    .card .body{padding:10px;}
+    .card .row .btn{padding:8px 6px; font-size:12px;}
+    .footnote{font-size:12px;}
+  }
+  @media (max-width: 420px){
+    .grid{grid-template-columns:1fr 1fr; gap:10px;}
+  }
+  label{font-size:12px; color:var(--ink-2); display:block; margin-bottom:6px;}
+  input[type=text]{
+    width:100%; background:#161618; border:1px solid var(--line); color:var(--ink-0);
+    padding:11px 12px; border-radius:10px; font-size:14px; outline:none;
+  }
+  input[type=text]:focus{border-color:var(--accent);}
+  input[type=file]{
+    width:100%; font-size:12.5px; color:var(--ink-2);
+  }
+  .btn{
+    border:none; border-radius:10px; padding:12px 18px; font-weight:700; font-size:14px;
+    cursor:pointer; transition:transform .15s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--accent); color:#0a0a0b;}
+  .btn-ghost{background:transparent; border:1px solid var(--line); color:var(--ink-1);}
+  .btn-danger{background:transparent; border:1px solid rgba(255,107,107,0.4); color:var(--danger);}
+
+  .grid{
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:16px;
+  }
+  .card{
+    border:1px solid var(--line); border-radius:14px; overflow:hidden; background:var(--bg-1);
+  }
+  .card .thumb{
+    aspect-ratio:3/4; background:linear-gradient(160deg,#1c1c1f,#0e0e10);
+    display:flex; align-items:center; justify-content:center; overflow:hidden;
+    color:var(--ink-2); font-size:12px;
+  }
+  .card .thumb img{width:100%; height:100%; object-fit:cover;}
+  .card .body{padding:12px; display:flex; flex-direction:column; gap:8px;}
+  .card .cap-input{font-size:12.5px;}
+  .card .row{display:flex; gap:8px;}
+  .card .row .btn{flex:1; padding:8px; font-size:12.5px;}
+  .empty-note{color:var(--ink-2); font-size:13.5px; padding:24px 0;}
+  .toast{
+    position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+    background:var(--accent); color:#0a0a0b; font-weight:700; font-size:13.5px;
+    padding:10px 18px; border-radius:100px; opacity:0; transition:opacity .25s ease;
+    pointer-events:none;
+  }
+  .toast.show{opacity:1;}
+  .footnote{
+    margin-top:40px; font-size:12.5px; color:var(--ink-2); line-height:1.6;
+    border-top:1px solid var(--line); padding-top:20px;
+  }
+  a{color:var(--accent);}
+</style>
+</head>
+<body>
+  <!-- Password protection -->
+  <div id="auth-gate">
+    <h2>Вход в админку</h2>
+    <input type="password" id="passInput" placeholder="Пароль" autocomplete="current-password">
+    <div class="err" id="passErr"></div>
+    <button class="btn btn-primary" id="passBtn">Войти</button>
+  </div>
+
+  <div class="layout locked" id="mainLayout">
+    <h1>Галерея — управление</h1>
+    <p class="sub">Изменения сразу видны на <b>hero.html</b> — данные хранятся в Supabase, работает на любом устройстве.</p>
+
+    <div class="add-card">
+      <div>
+        <label>Ссылка на изображение (URL)</label>
+        <input type="text" id="urlInput" placeholder="https://...">
+      </div>
+      <div>
+        <label>Подпись (необязательно)</label>
+        <input type="text" id="captionInput" placeholder="Портрет / золотой час">
+      </div>
+      <button class="btn btn-primary" id="addBtn">Добавить</button>
+    </div>
+
+    <div class="add-card" style="grid-template-columns:1fr auto;">
+      <div>
+        <label>Или загрузить файл с устройства</label>
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+      <button class="btn btn-ghost" id="uploadBtn">Загрузить</button>
+    </div>
+
+    <div id="grid" class="grid"></div>
+    <div id="emptyNote" class="empty-note" style="display:none;">Пока нет изображений. Добавьте первое выше.</div>
+
+    <h1 style="margin-top:48px;">Главное фото на hero</h1>
+    <p class="sub">Показывается в карточке справа от заголовка на <a href="hero.html">hero.html</a>.</p>
+
+    <div class="add-card">
+      <div class="card" style="padding:0;">
+        <div class="thumb" id="heroThumb">Нет фото</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px;">
+        <div>
+          <label>Ссылка на изображение (URL)</label>
+          <input type="text" id="heroUrlInput" placeholder="https://...">
+        </div>
+        <div>
+          <label>Или загрузить файл</label>
+          <input type="file" id="heroFileInput" accept="image/*">
+        </div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <button class="btn btn-primary" id="heroSaveBtn">Сохранить URL</button>
+        <button class="btn btn-ghost" id="heroUploadBtn">Загрузить файл</button>
+        <button class="btn btn-danger" id="heroRemoveBtn">Убрать фото</button>
+      </div>
+    </div>
+
+    <div class="footnote">
+      Хранение: Supabase, таблица <code>gallery_images</code> + Storage bucket <code>gallery</code> (см. <a href="supabase-schema.sql">supabase-schema.sql</a>).
+      URL и ключ проекта задаются в <a href="gallery-store.js">gallery-store.js</a>.
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="gallery-store.js"></script>
+  <script>
+    // ========== Password protection (hash only) ==========
+    // В коде хранится только SHA-256 хеш. Пароль в открытом виде нигде не лежит.
+    const PASS_HASH = 'c1d35cc3471fe509203d65b3e7a53fc82337ac9ae2c797b836621f706fe37df8'; // hash only
+    const authGate = document.getElementById('auth-gate');
+    const mainLayout = document.getElementById('mainLayout');
+    const passInput = document.getElementById('passInput');
+    const passErr = document.getElementById('passErr');
+    const passBtn = document.getElementById('passBtn');
+
+    async function sha256(str) {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+    }
+
+    function unlockAdmin() {
+      authGate.classList.add('hidden');
+      mainLayout.classList.remove('locked');
+      sessionStorage.setItem('realframe_admin_ok', '1');
+    }
+
+    async function checkPassword() {
+      const hash = await sha256(passInput.value);
+      if (hash === PASS_HASH) {
+        unlockAdmin();
+      } else {
+        passErr.textContent = 'Неверный пароль';
+        passInput.value = '';
+        passInput.focus();
+      }
+    }
+
+    if (sessionStorage.getItem('realframe_admin_ok') === '1') {
+      unlockAdmin();
+    }
+
+    passBtn.addEventListener('click', checkPassword);
+    passInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') checkPassword();
+    });
+    // ==================================================
+
+    const grid = document.getElementById('grid');
+    const emptyNote = document.getElementById('emptyNote');
+    const toast = document.getElementById('toast');
+
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1600);
+    }
+
+    async function render(){
+      const images = (await window.GalleryStore.getImages()).filter(i => i.url);
+      emptyNote.style.display = images.length ? 'none' : 'block';
+      grid.innerHTML = images.map((img) => `
+        <div class="card" data-id="${img.id}">
+          <div class="thumb">${img.url ? `<img src="${img.url}" alt="">` : 'Нет фото'}</div>
+          <div class="body">
+            <input class="cap-input" type="text" value="${(img.caption||'').replace(/"/g,'&quot;')}" data-role="caption">
+            <div class="row">
+              <button class="btn btn-ghost" data-role="save">Сохранить</button>
+              <button class="btn btn-danger" data-role="delete">Удалить</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('addBtn').addEventListener('click', async () => {
+      const url = document.getElementById('urlInput').value.trim();
+      const caption = document.getElementById('captionInput').value.trim();
+      if (!url) { showToast('Вставьте ссылку на изображение'); return; }
+      await window.GalleryStore.addImage({ url, caption });
+      document.getElementById('urlInput').value = '';
+      document.getElementById('captionInput').value = '';
+      await render();
+      showToast('Добавлено');
+    });
+
+    document.getElementById('uploadBtn').addEventListener('click', async () => {
+      const file = document.getElementById('fileInput').files[0];
+      if (!file) { showToast('Выберите файл'); return; }
+      showToast('Загрузка...');
+      const url = await window.GalleryStore.uploadFile(file);
+      if (!url) { showToast('Ошибка загрузки'); return; }
+      await window.GalleryStore.addImage({ url, caption: file.name });
+      document.getElementById('fileInput').value = '';
+      await render();
+      showToast('Загружено');
+    });
+
+    grid.addEventListener('click', async (e) => {
+      const card = e.target.closest('.card');
+      if (!card) return;
+      const id = card.dataset.id;
+      if (e.target.dataset.role === 'delete'){
+        await window.GalleryStore.deleteImage(id);
+        await render();
+        showToast('Удалено');
+      }
+      if (e.target.dataset.role === 'save'){
+        const caption = card.querySelector('[data-role="caption"]').value.trim();
+        await window.GalleryStore.updateImage(id, { caption });
+        showToast('Сохранено');
+      }
+    });
+
+    render();
+    window.GalleryStore.subscribe(render);
+
+    async function renderHero(){
+      const url = await window.GalleryStore.getHeroImage();
+      const thumb = document.getElementById('heroThumb');
+      thumb.innerHTML = url ? `<img src="${url}" alt="">` : 'Нет фото';
+      document.getElementById('heroUrlInput').value = url || '';
+    }
+
+    document.getElementById('heroSaveBtn').addEventListener('click', async () => {
+      const url = document.getElementById('heroUrlInput').value.trim();
+      if (!url) { showToast('Вставьте ссылку на изображение'); return; }
+      await window.GalleryStore.setHeroImage(url);
+      await renderHero();
+      showToast('Сохранено');
+    });
+
+    document.getElementById('heroUploadBtn').addEventListener('click', async () => {
+      const file = document.getElementById('heroFileInput').files[0];
+      if (!file) { showToast('Выберите файл'); return; }
+      showToast('Загрузка...');
+      const url = await window.GalleryStore.uploadFile(file);
+      if (!url) { showToast('Ошибка загрузки'); return; }
+      await window.GalleryStore.setHeroImage(url);
+      document.getElementById('heroFileInput').value = '';
+      await renderHero();
+      showToast('Загружено');
+    });
+
+    document.getElementById('heroRemoveBtn').addEventListener('click', async () => {
+      await window.GalleryStore.setHeroImage('');
+      await renderHero();
+      showToast('Фото убрано');
+    });
+
+    renderHero();
+    window.GalleryStore.subscribeHeroImage(renderHero);
+  </script>
+</body>
+</html>

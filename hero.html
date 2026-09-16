@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Гайд: Реализм и фотоэстетика</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-0:#000000;
+    --bg-1:#0a0a0a;
+    --ink-0:#ffffff;
+    --ink-1:#c7c7c7;
+    --ink-2:#7a7a7a;
+    --accent:#ffffff;
+    --line:rgba(255,255,255,0.22);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{
+    background:var(--bg-0);
+    color:var(--ink-0);
+    font-family:'Manrope',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .hero{
+    position:relative;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    padding:32px clamp(20px,6vw,72px) 48px;
+    background:var(--bg-0);
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .noise{
+    position:absolute; inset:0;
+    opacity:0.05;
+    pointer-events:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* top nav */
+  .nav{
+    position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:space-between;
+    max-width:1280px; width:100%; margin:0 auto;
+  }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-family:'Unbounded', sans-serif;
+    font-weight:700; font-size:15px; letter-spacing:0.01em; text-transform:uppercase;
+  }
+  .brand .dot{
+    width:9px; height:9px; border-radius:0;
+    background:var(--accent);
+  }
+  .nav-tag{
+    font-size:12px; color:var(--ink-1); font-weight:600; text-transform:uppercase;
+    border:1px solid var(--line);
+    padding:7px 14px; border-radius:0;
+    letter-spacing:0.06em;
+    display:flex; align-items:center; gap:8px;
+  }
+  .nav-tag .pulse{
+    width:6px;height:6px;border-radius:50%;background:#ffffff;
+  }
+
+  /* side vertical label */
+  .side-label{
+    position:absolute; left:18px; top:50%;
+    transform:translateY(-50%) rotate(180deg);
+    writing-mode:vertical-rl;
+    font-size:11px; letter-spacing:0.25em; text-transform:uppercase;
+    color:var(--ink-2);
+    display:none;
+    z-index:2;
+  }
+
+  /* main content */
+  .content{
+    position:relative; z-index:2;
+    max-width:1280px; width:100%; margin:0 auto;
+    display:grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap:56px;
+    align-items:center;
+    flex:1;
+    padding-top:24px;
+  }
+  .eyebrow{
+    display:flex; align-items:center; gap:12px;
+    font-size:12.5px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--ink-1);
+    margin-bottom:26px;
+    font-family:'Manrope',sans-serif;
+  }
+  .eyebrow .idx{
+    color:#000; background:var(--accent);
+    padding:3px 8px;
+    font-weight:800;
+  }
+  .eyebrow .bar{width:28px;height:1px;background:var(--line);}
+
+  h1{
+    font-family:'Unbounded', sans-serif;
+    font-weight:800;
+    font-size:clamp(46px, 7.8vw, 112px);
+    line-height:0.94;
+    letter-spacing:-0.02em;
+    color:var(--ink-0);
+    text-transform:uppercase;
+  }
+  h1 em{
+    font-style:normal;
+    font-weight:400;
+    color:#000000;
+    background:var(--ink-0);
+    padding:0 10px;
+    font-style:italic;
+  }
+
+  .sub{
+    margin-top:28px;
+    font-size:clamp(17px, 1.7vw, 20px);
+    line-height:1.5;
+    color:var(--ink-1);
+    max-width:520px;
+    font-weight:500;
+  }
+  .sub b{color:var(--ink-0); font-weight:700;}
+
+  .cta-row{
+    margin-top:40px;
+    display:flex; align-items:center; gap:20px; flex-wrap:wrap;
+  }
+  .btn-tg{
+    position:relative;
+    display:inline-flex; align-items:center; gap:14px;
+    background:var(--accent);
+    color:#000000;
+    font-family:'Unbounded', sans-serif;
+    font-weight:700; font-size:16px; letter-spacing:0; text-transform:uppercase;
+    padding:20px 32px;
+    border-radius:0;
+    border:1px solid var(--accent);
+    text-decoration:none;
+    transition:transform .2s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+  }
+  .btn-tg:hover{
+    transform:translateY(-2px);
+    background:#000000;
+    color:#ffffff;
+    box-shadow:6px 6px 0 0 var(--accent);
+  }
+  .btn-tg svg{width:20px;height:20px;flex-shrink:0;}
+  .cta-note{
+    font-size:13.5px; color:var(--ink-2);
+    display:flex; flex-direction:column; gap:2px;
+  }
+  .cta-note b{color:var(--ink-1); font-weight:600;}
+
+  .proof-row{
+    margin-top:48px;
+    display:flex; align-items:flex-start; gap:0;
+    flex-wrap:wrap;
+    padding-top:28px;
+    border-top:1px solid var(--line);
+    max-width:600px;
+  }
+  .proof{
+    display:flex; flex-direction:column; gap:4px;
+    flex:1;
+    padding-right:20px;
+    border-right:1px solid var(--line);
+  }
+  .proof:last-child{border-right:none; padding-right:0;}
+  .proof .num{
+    font-family:'Unbounded', sans-serif;
+    font-size:clamp(30px,3.4vw,40px); font-weight:800; color:var(--ink-0);
+    line-height:1;
+  }
+  .proof .lbl{
+    font-size:12px; color:var(--ink-2); letter-spacing:0.01em; line-height:1.3;
+  }
+
+  /* right visual card */
+  .visual{
+    position:relative;
+    height:min(560px, 62vh);
+    border-radius:0;
+    overflow:hidden;
+    border:1px solid var(--line);
+    background:#0a0a0a;
+    filter:grayscale(1) contrast(1.05);
+  }
+  .visual-photo{
+    position:absolute; inset:0; z-index:0;
+    width:100%; height:100%; object-fit:cover;
+  }
+  .visual::before{
+    content:"";
+    position:absolute; inset:0; z-index:1;
+    background:linear-gradient(160deg, rgba(255,255,255,0.06), transparent 60%);
+  }
+  .visual.has-photo::before{
+    background:linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.8) 100%);
+  }
+  .visual-grain{
+    position:absolute; inset:0; opacity:0.18;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    mix-blend-mode:overlay;
+  }
+  .visual-content{
+    position:relative; z-index:2;
+    height:100%;
+    display:flex; flex-direction:column; justify-content:space-between;
+    padding:26px;
+  }
+  .visual-tag{
+    align-self:flex-start;
+    font-size:11.5px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;
+    color:#000000; background:var(--accent);
+    padding:7px 12px; border-radius:0;
+  }
+  .compare{
+    display:flex; gap:10px; align-items:flex-end;
+  }
+  .compare .panel{
+    flex:1; border-radius:0;
+    aspect-ratio:3/4;
+    display:flex; align-items:flex-end; padding:14px;
+    font-size:12px; font-weight:700; letter-spacing:0.03em; text-transform:uppercase;
+    border:1px solid var(--line);
+  }
+  .panel.before{
+    background:#000000;
+    color:var(--ink-2);
+  }
+  .panel.after{
+    background:var(--ink-0);
+    color:#000000;
+  }
+  .visual-footer{
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:12.5px; color:var(--ink-2);
+    border-top:1px solid var(--line);
+    padding-top:16px;
+  }
+
+  @media (max-width: 880px){
+    .hero{padding:20px 18px 36px; min-height:auto;}
+    .content{grid-template-columns:1fr; gap:28px; padding-top:12px;}
+    .visual{order:-1; height:240px;}
+    .proof-row{gap:16px; margin-top:32px; padding-top:20px;}
+    .proof{padding-right:12px;}
+    .proof .num{font-size:26px;}
+    .proof .lbl{font-size:11px;}
+    h1{font-size:clamp(36px, 11vw, 56px); line-height:0.95;}
+    .sub{font-size:15.5px; margin-top:18px; max-width:100%;}
+    .cta-row{margin-top:28px; gap:14px;}
+    .btn-tg{padding:16px 22px; font-size:14px; width:100%; justify-content:center;}
+    .cta-note{font-size:12.5px;}
+    .eyebrow{font-size:11.5px; margin-bottom:18px;}
+    .nav{margin-bottom:8px;}
+    .gallery{padding:48px 18px 64px;}
+    .gallery-title{font-size:clamp(24px, 7vw, 34px);}
+    .gallery-grid{grid-template-columns:repeat(2, 1fr); gap:10px;}
+    .visual-content{padding:16px;}
+    .visual-tag{font-size:10.5px; padding:6px 10px;}
+    .compare .panel{font-size:11px; padding:10px;}
+  }
+
+  @media (max-width: 420px){
+    .proof-row{flex-direction:column; gap:14px;}
+    .proof{border-right:none; padding-right:0; border-bottom:1px solid var(--line); padding-bottom:12px;}
+    .proof:last-child{border-bottom:none; padding-bottom:0;}
+    .gallery-grid{grid-template-columns:1fr 1fr; gap:8px;}
+  }
+
+  /* gallery */
+  .gallery{
+    position:relative;
+    background:var(--bg-1);
+    padding:80px clamp(20px,6vw,72px) 96px;
+    border-top:1px solid var(--line);
+  }
+  .gallery-inner{
+    max-width:1280px; margin:0 auto;
+  }
+  .gallery-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    flex-wrap:wrap; gap:16px;
+    margin-bottom:36px;
+  }
+  .gallery-title{
+    font-family:'Unbounded', sans-serif;
+    font-weight:800;
+    font-size:clamp(28px, 3.6vw, 44px);
+    text-transform:uppercase;
+    letter-spacing:-0.01em;
+  }
+  .gallery-title em{font-style:italic; font-weight:400; color:#000; background:var(--ink-0); padding:0 8px;}
+  .gallery-sub{font-size:13.5px; color:var(--ink-2); max-width:360px;}
+  .gallery-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:16px;
+  }
+  .g-card{
+    position:relative;
+    aspect-ratio:3/4;
+    border-radius:0;
+    overflow:hidden;
+    border:1px solid var(--line);
+    background:#0a0a0a;
+    filter:grayscale(1) contrast(1.05);
+  }
+  .g-card img{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+  .g-card .g-empty{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background:#0a0a0a;
+    color:var(--ink-2); font-size:12px; letter-spacing:0.03em;
+  }
+  .g-card .g-caption{
+    position:absolute; left:0; right:0; bottom:0;
+    padding:12px 14px;
+    font-size:12.5px; font-weight:600; color:var(--ink-0);
+    background:linear-gradient(180deg, transparent, rgba(0,0,0,0.75) 70%);
+  }
+  @media (max-width: 880px){
+    .gallery-grid{grid-template-columns:repeat(2, 1fr);}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="noise"></div>
+
+  <nav class="nav">
+    <div class="brand"><span class="dot"></span>Realframe</div>
+    <div class="nav-tag"><span class="pulse"></span>Доступ открыт</div>
+  </nav>
+
+  <div class="content">
+    <div>
+      <div class="eyebrow"><span class="idx">Гайд №1</span><span class="bar"></span>Фотореализм и эстетика в нейросетях</div>
+      <h1>Твои AI-фото<br>видно за<br><em>километр</em></h1>
+      <p class="sub">
+        Восковая кожа, пластиковый свет, одинаковые лица — так выглядит 90% генераций.
+        Гайд разбирает, из чего на самом деле состоит живой кадр, и даёт <b>готовые промпты</b>,
+        чтобы твои фото путали с настоящей съёмкой.
+      </p>
+
+      <div class="cta-row">
+        <a class="btn-tg" href="https://t.me/your_bot_username" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21.5 3.5L2.5 11.1c-1.1.45-1.1 1.1-.2 1.4l4.8 1.5 1.9 5.8c.2.6.4.8.8.8.4 0 .6-.2.9-.5l2.4-2.3 4.9 3.6c.9.5 1.5.2 1.7-.8L23 4.7c.3-1.3-.4-1.8-1.5-1.2z" fill="currentColor"/>
+          </svg>
+          Получить гайд
+        </a>
+        <div class="cta-note">
+          <b>Открывается сразу в Telegram</b>
+          Никаких форм и ожидания — один клик
+        </div>
+      </div>
+
+      <div class="proof-row">
+        <div class="proof"><div class="num">40+</div><div class="lbl">готовых промптов и сеттингов света</div></div>
+        <div class="proof"><div class="num">12</div><div class="lbl">разборов «до / после» построчно</div></div>
+        <div class="proof"><div class="num">0</div><div class="lbl">плагинов и Photoshop — только текст</div></div>
+      </div>
+    </div>
+
+    <div class="visual" id="heroVisual">
+      <img class="visual-photo" id="heroPhoto" alt="" style="display:none;">
+      <div class="visual-grain"></div>
+      <div class="visual-content">
+        <span class="visual-tag">Внутри гайда</span>
+        <div class="compare">
+          <div class="panel before">Стандартный<br>AI-кадр</div>
+          <div class="panel after">После<br>системы</div>
+        </div>
+        <div class="visual-footer">
+          <span>Портрет · предметка · свет</span>
+          <span>→</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="gallery">
+  <div class="gallery-inner">
+    <div class="gallery-head">
+      <div class="gallery-title">Так выглядит <em>результат</em></div>
+      <div class="gallery-sub">Кадры, собранные строго по сеттингам света и цвета из гайда — без ретуши поверх.</div>
+    </div>
+    <div class="gallery-grid" id="galleryGrid"></div>
+  </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="gallery-store.js"></script>
+<script>
+  function renderGallery(images){
+    const grid = document.getElementById('galleryGrid');
+    if (!images.length){
+      grid.innerHTML = `<div class="g-empty" style="position:static; padding:24px 0;">Пока нет изображений</div>`;
+      return;
+    }
+    grid.innerHTML = images.map(img => `
+      <div class="g-card">
+        ${img.url ? `<img src="${img.url}" alt="${img.caption || ''}" loading="lazy">` : `<div class="g-empty">Фото не загружено</div>`}
+        ${img.caption ? `<div class="g-caption">${img.caption}</div>` : ''}
+      </div>
+    `).join('');
+  }
+  window.GalleryStore.getImages().then(renderGallery);
+  window.GalleryStore.subscribe(renderGallery);
+
+  function renderHeroPhoto(url){
+    const photo = document.getElementById('heroPhoto');
+    const visual = document.getElementById('heroVisual');
+    if (url){
+      photo.src = url;
+      photo.style.display = 'block';
+      visual.classList.add('has-photo');
+    } else {
+      photo.style.display = 'none';
+      visual.classList.remove('has-photo');
+    }
+  }
+  window.GalleryStore.getHeroImage().then(renderHeroPhoto);
+  window.GalleryStore.subscribeHeroImage(renderHeroPhoto);
+</script>
+
+</body>
+</html>
